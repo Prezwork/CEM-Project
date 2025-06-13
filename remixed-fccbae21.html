@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Komjak's CEM Assessment Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .quiz-container {
+            padding: 40px;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 30px 0 20px 0;
+            padding: 15px 0;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .question {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .question:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .option:hover {
+            background: #e3f2fd;
+            border-color: #667eea;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+            accent-color: #667eea;
+        }
+
+        .option.selected {
+            background: #e3f2fd;
+            border-color: #667eea;
+            font-weight: 600;
+        }
+
+        .score-display {
+            background: linear-gradient(135deg, #e8f5e8, #f0f8ff);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            display: block;
+            margin: 40px auto;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result-container {
+            display: none;
+            margin-top: 40px;
+            padding: 40px;
+            background: linear-gradient(135deg, #f8f9ff, #e8f2ff);
+            border-radius: 20px;
+            border: 3px solid #667eea;
+        }
+
+        .result-quadrant {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quadrant-badge {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .mass-high { background: linear-gradient(135deg, #ff6b6b, #ff8e53); color: white; }
+        .mass-low { background: linear-gradient(135deg, #4ecdc4, #44a08d); color: white; }
+        .niche-high { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .niche-low { background: linear-gradient(135deg, #ffeaa7, #fab1a0); color: #333; }
+
+        .result-scores {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .score-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .score-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-label {
+            color: #666;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .recommendations {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .recommendations h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .recommendations li:before {
+            content: "🎯";
+            position: absolute;
+            left: 0;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .matrix-visual {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            position: relative;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+        }
+
+        .quadrant-visual {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: white;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .q1 { top: 0; right: 0; background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
+        .q2 { bottom: 0; right: 0; background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+        .q3 { top: 0; left: 0; background: linear-gradient(135deg, #667eea, #764ba2); }
+        .q4 { bottom: 0; left: 0; background: linear-gradient(135deg, #ffeaa7, #fab1a0); color: #333; }
+
+        .position-dot {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #ff0000;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .axis-labels {
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .x-axis, .y-axis {
+            position: absolute;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .x-axis {
+            bottom: -20px;
+            right: 10px;
+        }
+
+        .y-axis {
+            top: 10px;
+            left: -80px;
+            transform: rotate(-90deg);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .quiz-container {
+                padding: 20px;
+            }
+            
+            .result-scores {
+                grid-template-columns: 1fr;
+            }
+            
+            .matrix-visual {
+                width: 250px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Komjak's CEM Assessment</h1>
+            <div class="subtitle">"ค้นพบตำแหน่งแบรนด์ของคุณใน 5 นาที"</div>
+        </div>
+
+        <div class="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <form id="cemQuiz">
+                <div class="section-title">📊 SECTION A: การมีส่วนร่วมของผู้บริโภค (Involvement Assessment)</div>
+                
+                <!-- Question 1 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">1</span>
+                        ลูกค้าใช้เวลานานในการตัดสินใจซื้อผลิตภัณฑ์/บริการของเรา (มากกว่า 1 สัปดาห์)
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q1" value="1" required>
+                            <span>ตัดสินใจทันที (ไม่เกิน 5 นาที)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="2">
+                            <span>ตัดสินใจเร็ว (ไม่เกิน 1 ชั่วโมง)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="3">
+                            <span>ตัดสินใจปานกลาง (ไม่เกิน 1 วัน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="4">
+                            <span>ตัดสินใจช้า (1-7 วัน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q1" value="5">
+                            <span>ตัดสินใจนาน (มากกว่า 1 สัปดาห์)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">2</span>
+                        การซื้อผิดหรือผิดพลาดจะส่งผลกระทบต่อลูกค้าอย่างมาก
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q2" value="1" required>
+                            <span>ไม่มีผลกระทบ (เช่น หมากฝรั่ง)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="2">
+                            <span>ผลกระทบเล็กน้อย (เช่น กาแฟ)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="3">
+                            <span>ผลกระทบปานกลาง (เช่น เสื้อผ้า)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="4">
+                            <span>ผลกระทบมาก (เช่น โทรศัพท์)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q2" value="5">
+                            <span>ผลกระทบอย่างมาก (เช่น รถยนต์, บ้าน)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">3</span>
+                        ราคาผลิตภัณฑ์/บริการของเราถือว่าสูงเมื่อเทียบกับรายได้เฉลี่ยของกลุ่มเป้าหมาย
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q3" value="1" required>
+                            <span>ราคาต่ำมาก (น้อยกว่า 0.1% ของรายได้เดือน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="2">
+                            <span>ราคาต่ำ (0.1-1% ของรายได้เดือน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="3">
+                            <span>ราคาปานกลาง (1-5% ของรายได้เดือน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="4">
+                            <span>ราคาสูง (5-20% ของรายได้เดือน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q3" value="5">
+                            <span>ราคาสูงมาก (มากกว่า 20% ของรายได้เดือน)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">4</span>
+                        ลูกค้าต้องศึกษาข้อมูลมากมายก่อนตัดสินใจซื้อ
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q4" value="1" required>
+                            <span>ไม่ต้องศึกษาเลย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="2">
+                            <span>ศึกษาเล็กน้อย (อ่านรีวิว 2-3 ข้อ)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="3">
+                            <span>ศึกษาปานกลาง (เปรียบเทียบ 2-3 แบรนด์)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="4">
+                            <span>ศึกษามาก (อ่านรีวิว/บทความมากมาย)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q4" value="5">
+                            <span>ศึกษาอย่างละเอียด (วิจัยนาน เปรียบเทียบหลายแบรนด์)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">5</span>
+                        ผลิตภัณฑ์/บริการของเรามีคุณสมบัติทางเทคนิคที่ซับซ้อน
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q5" value="1" required>
+                            <span>เรียบง่ายมาก ใช้งานได้ทันที</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="2">
+                            <span>เรียบง่าย เข้าใจง่าย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="3">
+                            <span>ปานกลาง ต้องเรียนรู้เล็กน้อย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="4">
+                            <span>ซับซ้อน ต้องเรียนรู้การใช้งาน</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q5" value="5">
+                            <span>ซับซ้อนมาก ต้องมีความเชี่ยวชาญ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 6 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">6</span>
+                        ลูกค้าซื้อผลิตภัณฑ์/บริการของเราไม่บ่อยนัก
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q6" value="1" required>
+                            <span>ซื้อประจำ (รายวัน-รายสัปดาห์)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="2">
+                            <span>ซื้อบ่อย (รายเดือน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="3">
+                            <span>ซื้อปานกลาง (2-4 เดือนต่อครั้ง)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="4">
+                            <span>ซื้อไม่บ่อย (ปีละ 1-2 ครั้ง)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q6" value="5">
+                            <span>ซื้อนานๆ ครั้ง (หลายปีต่อครั้ง)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 7 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">7</span>
+                        การตัดสินใจซื้อของเรามีผลต่อวิถีชีวิตหรือภาพลักษณ์ของลูกค้าอย่างมาก
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q7" value="1" required>
+                            <span>ไม่มีผลต่อวิถีชีวิตเลย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="2">
+                            <span>มีผลเล็กน้อย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="3">
+                            <span>มีผลปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="4">
+                            <span>มีผลมาก</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q7" value="5">
+                            <span>เปลี่ยนวิถีชีวิต/ภาพลักษณ์อย่างมาก</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 8 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">8</span>
+                        ลูกค้ามักขอคำแนะนำจากคนอื่นก่อนซื้อผลิตภัณฑ์/บริการของเรา
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q8" value="1" required>
+                            <span>ตัดสินใจคนเดียว ไม่ต้องปรึกษาใคร</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="2">
+                            <span>ปรึกษาเล็กน้อย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="3">
+                            <span>ปรึกษาปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="4">
+                            <span>ปรึกษาหลายคน</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q8" value="5">
+                            <span>ต้องมีการประชุมปรึกษากัน</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 9 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">9</span>
+                        การใช้ผลิตภัณฑ์/บริการของเราทำให้ลูกค้ารู้สึกภาคภูมิใจและอยากโชว์คนอื่น
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q9" value="1" required>
+                            <span>ไม่อยากให้ใครรู้</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="2">
+                            <span>เฉยๆ ไม่แคร์</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="3">
+                            <span>ปกติธรรมดา</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="4">
+                            <span>ค่อนข้างภูมิใจ</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q9" value="5">
+                            <span>ภูมิใจมาก อยากโชว์ทุกคน</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 10 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">10</span>
+                        หากซื้อผิด ลูกค้าจะรู้สึกเสียใจและเศร้าใจมาก
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q10" value="1" required>
+                            <span>ไม่เสียใจเลย ซื้อใหม่ได้เลย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="2">
+                            <span>เสียใจเล็กน้อย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="3">
+                            <span>เสียใจปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="4">
+                            <span>เสียใจมาก</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q10" value="5">
+                            <span>เสียใจมากมาย อาจกระทบจิตใจ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="section-title">🌍 SECTION B: ขนาดของตลาด (Market Size Assessment)</div>
+
+                <!-- Question 11 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">11</span>
+                        กลุ่มเป้าหมายของเรามีจำนวนมากในประเทศไทย/ตลาดหลัก
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q11" value="1" required>
+                            <span>น้อยมาก (น้อยกว่า 10,000 คน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q11" value="2">
+                            <span>น้อย (10,000-100,000 คน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q11" value="3">
+                            <span>ปานกลาง (100,000-1 ล้านคน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q11" value="4">
+                            <span>มาก (1-10 ล้านคน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q11" value="5">
+                            <span>มากมาย (มากกว่า 10 ล้านคน)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 12 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">12</span>
+                        ผลิตภัณฑ์/บริการของเราเหมาะกับคนทุกเพศทุกวัย
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q12" value="1" required>
+                            <span>เฉพาะกลุ่มแคบมาก (เช่น ผู้ชาย วัย 25-30 ที่เล่นกีต้าร์)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q12" value="2">
+                            <span>เฉพาะกลุ่มแคบ (เช่น วัยรุ่นที่ชอบเกม)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q12" value="3">
+                            <span>กลุ่มปานกลาง (เช่น ผู้หญิงวัยทำงาน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q12" value="4">
+                            <span>กลุ่มกว้าง (เช่น คนทำงานทุกเพศ)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q12" value="5">
+                            <span>ทุกคนใช้ได้ (เช่น น้ำดื่ม อาหาร)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 13 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">13</span>
+                        สามารถหาซื้อผลิตภัณฑ์/บริการของเราได้ง่ายในที่ต่างๆ
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q13" value="1" required>
+                            <span>หาซื้อยากมาก (ร้านเฉพาะทาง/สั่งพิเศษ)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q13" value="2">
+                            <span>หาซื้อยาก (ร้านเฉพาะบางแห่ง)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q13" value="3">
+                            <span>หาซื้อปานกลาง (ห้างใหญ่/ออนไลน์)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q13" value="4">
+                            <span>หาซื้อง่าย (ร้านสะดวกซื้อ/ออนไลน์ทั่วไป)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q13" value="5">
+                            <span>หาซื้อง่ายมาก (ทุกที่ รวมถึงตู้หยอดเหรียญ)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 14 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">14</span>
+                        เพื่อเข้าใจและใช้ผลิตภัณฑ์/บริการของเรา ลูกค้าต้องมีความรู้เฉพาะทาง
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q14" value="1" required>
+                            <span>ไม่ต้องมีความรู้เฉพาะทางเลย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q14" value="2">
+                            <span>ต้องมีความรู้เล็กน้อย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q14" value="3">
+                            <span>ต้องมีความรู้ปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q14" value="4">
+                            <span>ต้องมีความรู้ค่อนข้างมาก</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q14" value="5">
+                            <span>ต้องเป็นผู้เชี่ยวชาญเฉพาะทาง</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 15 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">15</span>
+                        กลุ่มเป้าหมายของเรามีวัฒนธรรมหรือไลฟ์สไตล์เฉพาะที่แตกต่างจากคนทั่วไป
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q15" value="1" required>
+                            <span>เหมือนคนทั่วไปทุกประการ</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q15" value="2">
+                            <span>แตกต่างเล็กน้อย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q15" value="3">
+                            <span>แตกต่างปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q15" value="4">
+                            <span>แตกต่างค่อนข้างมาก</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q15" value="5">
+                            <span>แตกต่างมาก มีวัฒนธรรมเฉพาะ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 16 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">16</span>
+                        มีคู่แข่งมากมายที่ทำผลิตภัณฑ์/บริการคล้ายกับเรา
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q16" value="1" required>
+                            <span>คู่แข่งน้อยมาก (น้อยกว่า 3 ราย)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q16" value="2">
+                            <span>คู่แข่งน้อย (3-10 ราย)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q16" value="3">
+                            <span>คู่แข่งปานกลาง (10-50 ราย)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q16" value="4">
+                            <span>คู่แข่งมาก (50-200 ราย)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q16" value="5">
+                            <span>คู่แข่งมากมาย (มากกว่า 200 ราย)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 17 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">17</span>
+                        ลูกค้าสามารถหาทางเลือกอื่นแทนผลิตภัณฑ์/บริการของเราได้ง่าย
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q17" value="1" required>
+                            <span>หาทางเลือกอื่นได้ยากมาก</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q17" value="2">
+                            <span>หาทางเลือกอื่นได้ยาก</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q17" value="3">
+                            <span>หาทางเลือกอื่นได้ปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q17" value="4">
+                            <span>หาทางเลือกอื่นได้ง่าย</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q17" value="5">
+                            <span>หาทางเลือกอื่นได้ง่ายมาก</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 18 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">18</span>
+                        ผลิตภัณฑ์/บริการของเราตอบสนองความต้องการพื้นฐานของมนุษย์
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q18" value="1" required>
+                            <span>ความต้องการเฉพาะทางมาก (hobby, passion)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q18" value="2">
+                            <span>ความต้องการเฉพาะทาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q18" value="3">
+                            <span>ความต้องการปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q18" value="4">
+                            <span>ความต้องการพื้นฐาน</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q18" value="5">
+                            <span>ความจำเป็นขั้นพื้นฐาน (อาหาร น้ำ ที่อยู่)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 19 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">19</span>
+                        ปริมาณการใช้งานต่อครั้งของลูกค้าคือ
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q19" value="1" required>
+                            <span>ใช้น้อยมาก (เป็นพิเศษ)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q19" value="2">
+                            <span>ใช้น้อย (เป็นครั้งคราว)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q19" value="3">
+                            <span>ใช้ปานกลาง (เป็นประจำ)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q19" value="4">
+                            <span>ใช้มาก (ทุกวัน)</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q19" value="5">
+                            <span>ใช้มากมาย (ตลอดเวลา)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 20 -->
+                <div class="question">
+                    <div class="question-text">
+                        <span class="question-number">20</span>
+                        การโฆษณาผลิตภัณฑ์/บริการของเราผ่านสื่อมวลชน (TV, Radio, หนังสือพิมพ์) มีประสิทธิภาพดี
+                    </div>
+                    <div class="options">
+                        <label class="option">
+                            <input type="radio" name="q20" value="1" required>
+                            <span>ไม่มีประสิทธิภาพเลย เสียเงินเปล่า</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q20" value="2">
+                            <span>ประสิทธิภาพต่ำ</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q20" value="3">
+                            <span>ประสิทธิภาพปานกลาง</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q20" value="4">
+                            <span>ประสิทธิภาพดี</span>
+                        </label>
+                        <label class="option">
+                            <input type="radio" name="q20" value="5">
+                            <span>ประสิทธิภาพดีมาก ขายดีทันที</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="score-display" id="liveScore" style="display: none;">
+                    <strong>คะแนนปัจจุบัน:</strong>
+                    <span id="currentInvolvement">0.0</span> (Involvement) | 
+                    <span id="currentMarket">0.0</span> (Market Size)
+                </div>
+
+                <button type="button" class="calculate-btn" id="calculateBtn" onclick="calculateCEM()">
+                    🚀 คำนวณตำแหน่งแบรนด์ของฉัน
+                </button>
+            </form>
+
+            <div class="result-container" id="resultContainer">
+                <div class="result-quadrant">
+                    <div class="quadrant-badge" id="quadrantBadge">QUADRANT</div>
+                    <h2 id="quadrantTitle">ตำแหน่งแบรนด์ของคุณ</h2>
+                    <p id="quadrantDescription">คำอธิบายกลยุทธ์</p>
+                </div>
+
+                <div class="result-scores">
+                    <div class="score-card">
+                        <div class="score-value" id="involvementScore">0.0</div>
+                        <div class="score-label">Involvement Level</div>
+                    </div>
+                    <div class="score-card">
+                        <div class="score-value" id="marketScore">0.0</div>
+                        <div class="score-label">Market Size</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>ตำแหน่งของแบรนด์คุณใน CEM Matrix</h3>
+                    <div class="matrix-visual">
+                        <div class="quadrant-visual q1">Q1<br>Mass +<br>High Involvement</div>
+                        <div class="quadrant-visual q2">Q2<br>Mass +<br>Low Involvement</div>
+                        <div class="quadrant-visual q3">Q3<br>Niche +<br>High Involvement</div>
+                        <div class="quadrant-visual q4">Q4<br>Niche +<br>Low Involvement</div>
+                        <div class="position-dot" id="positionDot"></div>
+                        <div class="axis-labels">
+                            <div class="x-axis">High Involvement →</div>
+                            <div class="y-axis">Mass Market ↑</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recommendations">
+                    <h3>🎯 กลยุทธ์ที่แนะนำสำหรับแบรนด์ของคุณ</h3>
+                    <ul id="recommendationsList">
+                        <!-- Dynamic recommendations will be inserted here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for tracking progress and scores
+        let answeredQuestions = 0;
+        const totalQuestions = 20;
+
+        // Add event listeners to all radio buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioButtons = document.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    updateProgress();
+                    updateLiveScore();
+                    updateSelectedOption(this);
+                });
+            });
+        });
+
+        function updateSelectedOption(selectedRadio) {
+            // Remove selected class from all options in this question
+            const questionDiv = selectedRadio.closest('.question');
+            const options = questionDiv.querySelectorAll('.option');
+            options.forEach(option => option.classList.remove('selected'));
+            
+            // Add selected class to the chosen option
+            selectedRadio.closest('.option').classList.add('selected');
+        }
+
+        function updateProgress() {
+            const answeredCount = getAnsweredQuestionsCount();
+            const progressPercentage = (answeredCount / totalQuestions) * 100;
+            document.getElementById('progressFill').style.width = progressPercentage + '%';
+            
+            // Enable calculate button if all questions are answered
+            const calculateBtn = document.getElementById('calculateBtn');
+            if (answeredCount === totalQuestions) {
+                calculateBtn.disabled = false;
+                calculateBtn.textContent = '🚀 คำนวณตำแหน่งแบรนด์ของฉัน';
+            } else {
+                calculateBtn.disabled = true;
+                calculateBtn.textContent = `ตอบคำถามให้ครบ (${answeredCount}/${totalQuestions})`;
+            }
+        }
+
+        function getAnsweredQuestionsCount() {
+            let count = 0;
+            for (let i = 1; i <= totalQuestions; i++) {
+                const questionInputs = document.querySelectorAll(`input[name="q${i}"]`);
+                for (let input of questionInputs) {
+                    if (input.checked) {
+                        count++;
+                        break;
+                    }
+                }
+            }
+            return count;
+        }
+
+        function updateLiveScore() {
+            const answeredCount = getAnsweredQuestionsCount();
+            if (answeredCount >= 5) {
+                const scores = calculateCurrentScores();
+                document.getElementById('currentInvolvement').textContent = scores.involvement.toFixed(1);
+                document.getElementById('currentMarket').textContent = scores.market.toFixed(1);
+                document.getElementById('liveScore').style.display = 'block';
+            }
+        }
+
+        function calculateCurrentScores() {
+            // Calculate involvement score (questions 1-10)
+            let involvementTotal = 0;
+            let involvementWeight = 0;
+            
+            for (let i = 1; i <= 10; i++) {
+                const input = document.querySelector(`input[name="q${i}"]:checked`);
+                if (input) {
+                    const value = parseInt(input.value);
+                    const weight = getInvolvementWeight(i);
+                    involvementTotal += value * weight;
+                    involvementWeight += weight;
+                }
+            }
+            
+            // Calculate market score (questions 11-20)
+            let marketTotal = 0;
+            let marketWeight = 0;
+            
+            for (let i = 11; i <= 20; i++) {
+                const input = document.querySelector(`input[name="q${i}"]:checked`);
+                if (input) {
+                    const value = parseInt(input.value);
+                    const weight = getMarketWeight(i);
+                    marketTotal += value * weight;
+                    marketWeight += weight;
+                }
+            }
+            
+            return {
+                involvement: involvementWeight > 0 ? involvementTotal / involvementWeight : 0,
+                market: marketWeight > 0 ? marketTotal / marketWeight : 0
+            };
+        }
+
+        function getInvolvementWeight(questionNumber) {
+            const highWeight = [1, 2, 3, 6, 7]; // Price/Risk and Frequency/Impact
+            const mediumWeight = [8, 9, 10]; // Social/Emotional
+            
+            if (highWeight.includes(questionNumber)) return 1.5;
+            if (mediumWeight.includes(questionNumber)) return 1.3;
+            return 1.0;
+        }
+
+        function getMarketWeight(questionNumber) {
+            const highWeight = [11, 12, 18, 20]; // Target size and basic needs
+            const mediumWeight = [13, 16, 17]; // Accessibility and competition
+            
+            if (highWeight.includes(questionNumber)) return 1.5;
+            if (mediumWeight.includes(questionNumber)) return 1.3;
+            return 1.0;
+        }
+
+        function calculateCEM() {
+            // Validate all questions are answered
+            if (getAnsweredQuestionsCount() < totalQuestions) {
+                alert('กรุณาตอบคำถามให้ครบทุกข้อ');
+                return;
+            }
+
+            const scores = calculateCurrentScores();
+            const quadrant = getQuadrant(scores.market, scores.involvement);
+            
+            // Display results
+            displayResults(quadrant, scores.market, scores.involvement);
+            
+            // Scroll to results
+            document.getElementById('resultContainer').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        function getQuadrant(marketScore, involvementScore) {
+            if (marketScore >= 3.1 && involvementScore >= 3.1) {
+                return "mass_high"; // Quadrant 1
+            } else if (marketScore >= 3.1 && involvementScore < 3.1) {
+                return "mass_low"; // Quadrant 2
+            } else if (marketScore < 3.1 && involvementScore >= 3.1) {
+                return "niche_high"; // Quadrant 3
+            } else {
+                return "niche_low"; // Quadrant 4
+            }
+        }
+
+        function displayResults(quadrant, marketScore, involvementScore) {
+            const resultContainer = document.getElementById('resultContainer');
+            const quadrantBadge = document.getElementById('quadrantBadge');
+            const quadrantTitle = document.getElementById('quadrantTitle');
+            const quadrantDescription = document.getElementById('quadrantDescription');
+            const involvementScoreElement = document.getElementById('involvementScore');
+            const marketScoreElement = document.getElementById('marketScore');
+            const recommendationsList = document.getElementById('recommendationsList');
+            const positionDot = document.getElementById('positionDot');
+
+            // Update scores
+            involvementScoreElement.textContent = involvementScore.toFixed(1);
+            marketScoreElement.textContent = marketScore.toFixed(1);
+
+            // Position the dot on the matrix
+            const dotX = ((involvementScore - 1) / 4) * 100; // Convert 1-5 scale to 0-100%
+            const dotY = (4 - (marketScore - 1)) / 4 * 100; // Invert Y axis and convert to 0-100%
+            positionDot.style.left = dotX + '%';
+            positionDot.style.top = dotY + '%';
+
+            // Get quadrant data
+            const quadrantData = getQuadrantData(quadrant);
+            
+            // Update quadrant info
+            quadrantBadge.textContent = quadrantData.badge;
+            quadrantBadge.className = 'quadrant-badge ' + quadrantData.class;
+            quadrantTitle.textContent = quadrantData.title;
+            quadrantDescription.textContent = quadrantData.description;
+
+            // Update recommendations
+            recommendationsList.innerHTML = '';
+            quadrantData.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                recommendationsList.appendChild(li);
+            });
+
+            // Show results
+            resultContainer.style.display = 'block';
+        }
+
+        function getQuadrantData(quadrant) {
+            const data = {
+                mass_high: {
+                    badge: "QUADRANT 1",
+                    class: "mass-high",
+                    title: "Mass + High Involvement",
+                    description: "กลยุทธ์ 'Trust Foundation' - แบรนด์สร้างศรัทธา",
+                    recommendations: [
+                        "สร้างความน่าเชื่อถือระยะยาวผ่านคุณภาพและบริการ",
+                        "ให้ข้อมูลครบถ้วนสำหรับการตัดสินใจของลูกค้า",
+                        "ลงทุนในบริการหลังการขายและ customer support",
+                        "สร้าง brand authority และ thought leadership",
+                        "ใช้ testimonial และ case study จากลูกค้าจริง",
+                        "พัฒนา omnichannel experience ที่สอดคล้องกัน"
+                    ]
+                },
+                mass_low: {
+                    badge: "QUADRANT 2",
+                    class: "mass-low",
+                    title: "Mass + Low Involvement",
+                    description: "กลยุทธ์ 'Impulse Charm' - เสน่ห์ชั่ววูบ",
+                    recommendations: [
+                        "เน้นการมองเห็นและการจำแบรนด์ (Brand Awareness)",
+                        "ลดความซับซ้อนในการซื้อให้เหลือน้อยที่สุด",
+                        "ใช้กลยุทธ์ราคาและโปรโมชันเพื่อกระตุ้นการซื้อ",
+                        "สร้างความสะดวกสบายสูงสุดในทุก touchpoint",
+                        "ใช้ social media และ viral marketing",
+                        "จัดวางสินค้าในจุดที่มองเห็นได้ง่าย"
+                    ]
+                },
+                niche_high: {
+                    badge: "QUADRANT 3",
+                    class: "niche-high",
+                    title: "Niche + High Involvement",
+                    description: "กลยุทธ์ 'Selective Fan' - แฟนผู้ชางเลือก",
+                    recommendations: [
+                        "สร้างชุมชนและ brand community ที่แข็งแกร่ง",
+                        "เน้นความเชี่ยวชาญและคุณภาพระดับสูง",
+                        "ให้บริการส่วนบุคคลระดับพรีเมี่ยม",
+                        "สร้าง brand evangelists และ advocates",
+                        "พัฒนาผลิตภัณฑ์ร่วมกับลูกค้า (Co-creation)",
+                        "จัดกิจกรรมพิเศษสำหรับสมาชิกเท่านั้น"
+                    ]
+                },
+                niche_low: {
+                    badge: "QUADRANT 4",
+                    class: "niche-low",
+                    title: "Niche + Low Involvement",
+                    description: "กลยุทธ์ 'Explorer Attraction' - ดึงดูดใจนักสำรวจ",
+                    recommendations: [
+                        "สร้างความรู้สึกการค้นพบสิ่งพิเศษ",
+                        "เชื่อมโยงกับไลฟ์สไตล์และค่านิยมเฉพาะ",
+                        "ใช้ micro-targeting และ niche channels",
+                        "สร้างความพิเศษและ exclusivity",
+                        "ใช้ influencer และ word-of-mouth marketing",
+                        "พัฒนาประสบการณ์ที่ unique และจดจำได้"
+                    ]
+                }
+            };
+            
+            return data[quadrant];
+        }
+
+        // Initialize progress on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
